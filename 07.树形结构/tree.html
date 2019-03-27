@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="./vue.js"></script>
+</head>
+<body>
+    <div id="app">
+        <template v-for="item in tree" >
+            <div>
+                <input type="checkbox">
+                <span>{{item.name}}</span>
+                <button @click="addChild">新增</button>
+                <br/>
+            </div>
+        </template>
+    </div>
+</body>
+</html>
+<script>
+    new Vue({
+        el: "#app",
+        data: {
+            tree: [
+                {
+                    name: 'java',
+                    children: [
+                        {name:'jsp'},
+                        {name:'hibernate'},
+                        {name:'mysql'}
+                    ]
+                },
+                {
+                    name: 'web',
+                    children: [
+                        {name:'js'},
+                        {name:'html'},
+                        {name:'css'}
+                    ]
+                },
+                {
+                    name: 'iOS',
+                    children: [
+                        {name:'c语言'},
+                    ]
+                }
+            ]
+        },
+        methods: {
+            addChild(){
+                console.log("新增");
+                var div = `<div></div>`
+            }
+        }
+    })
+</script>

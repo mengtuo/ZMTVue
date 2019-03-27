@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        #app {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            left: 0;
+        }
+
+        .main {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .tabbar {
+            margin: 0 auto;
+            width: 300px;
+            height: 50px;
+            display: flex;
+            flex-direction: row;
+            border-radius: 10px;
+            border: 1px solid lightgray;
+            overflow: hidden;
+
+        }
+
+        .tab {
+            flex: 1;
+            line-height: 50px;
+            text-align: center;
+        }
+
+        .tab:nth-child(2n) {
+            border-left: 1px solid lightgray;
+            border-right: 1px solid lightgray;
+        }
+
+        .progress {
+            margin: 0 auto;
+            width: 300px;
+            height: 500px;
+            margin-top: 50px;
+        }
+
+        .BarProgress,
+        .DotProgress,
+        .RingProgress {
+            width: 100%;
+            height: 60px;
+            background: white;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        #barProgress {
+            width: 0;
+            height: 60px;
+            background: rgb(242, 82, 82);
+            text-align: center;
+            line-height: 60px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .DotProgress>ul {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .dot {
+            width: 15px;
+            height: 15px;
+            background: lightgray;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+
+        .dotActive {
+            background: rgb(242, 82, 82);
+        }
+
+        .RingProgress {
+            display: flex;
+            justify-content: center;
+        }
+        .circleBar {
+            font-size: 200px;
+            width: 1em;
+            height: 1em;
+            position: relative;
+            background-color: rgb(242, 82, 82);
+        }
+
+        .circle-left,
+        .circle-right {
+            width: 1em;
+            height: 1em;
+            background-color: rgb(174, 174, 174);
+        }
+
+        .circle-right {
+            clip: rect(0, auto, auto, .5em);
+        }
+
+        .circle-left {
+            clip: rect(0, .5em, auto, 0);
+        }
+
+        .circleBar * {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            margin: auto;
+        }
+
+        .circle-mask {
+            width: 0.8em;
+            height: 0.8em;
+            background-color:  #fff;
+            text-align: center;
+            line-height: 0.2em;
+            color: rgba(0, 0, 0, 0.5);
+        }
+
+        .circle-mask :first-child {
+            font-size: 0.3em;
+            height: 0.8em;
+            line-height: 0.8em;
+            display: block;
+        }
+
+        /*自身以及子元素都是圆*/
+        .circleBar,
+        .circleBar>* {
+            border-radius: 50%;
+        }
+
+        .actived {
+            background: rgb(242, 82, 82);
+        }
+    </style>
+    <script src="./vue.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <div class="main">
+            <ul class="tabbar">
+                <li class="tab" v-for="(item,index) in tabs" @click="select(index)"
+                    :class="{actived:selectedIndex==index}">
+                    <span>
+                        {{item}}
+                    </span>
+                </li>
+            </ul>
+            <div class="progress">
+                <component :is="currentComponent"></component>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+<!-- Bar进度条的模板 -->
+<script type="text/template" id="BarProgress">
+    <div class="BarProgress">
+        <div id="barProgress" ref="barProgress"></div>
+    </div>
+</script>
+<!-- Ring进度条的模板 -->
+<script type="text/template" id="RingProgress">
+    <div class="RingProgress">
+        <div class="circleBar">
+            <div class="circle-left" ref="circleLeft"></div>
+            <div class="circle-right" ref="circleRight"></div>
+            <div class="circle-mask">
+                <span class="percent">{{percent}}%</span>
+            </div>
+        </div>
+    </div>
+</script>
+<!-- Dot进度的模板 -->
+<script type="text/template" id="DotProgress">
+    <div class="DotProgress">
+        <ul>
+            <li v-for="(item,index) in 100" class="dot" ref="dot"></li>
+        </ul>
+    </div>
+</script>
+<script>
+    var BarProgress = {
+        template: '#BarProgress',
+        data() {
+            return {
+                count: 0,
+                timeInterval: ''
+            }
+        },
+        mounted() {
+            var _this = this;
+            _this.timeInterval = setInterval(function () {
+                _this.count++;
+                var barProgress = _this.$refs['barProgress'];
+                barProgress.innerHTML = _this.count + "%";
+                barProgress.style.width = _this.count + "%";
+                if (_this.count == 100) {
+                    clearInterval(_this.timeInterval)
+                }
+            }, 10)
+        },
+        beforeDestroy() {
+            console.log("组件切换,销毁");
+            var barProgress = this.$refs['barProgress'];
+            barProgress.style.width = '0%';
+            clearInterval(this.timeInterval);
+        },
+    }
+    var RingProgress = {
+        template: '#RingProgress',
+        data() {
+            return {
+                percent: 0
+            }
+        },
+        mounted() {
+            var circleRight = this.$refs['circleRight'];
+            var circleLeft = this.$refs['circleLeft'];
+            var count = 0;
+            var leftCount = 0
+            var _this = this;
+            // 每次移动3.6度,1% 
+            var time = setInterval(function () {
+                //180度就是50*3.6
+                _this.percent++;
+                if (_this.percent <= 50) {
+                    circleRight.style.cssText = `
+                        transform: rotate(${_this.percent*3.6}deg)
+                    `
+                } else {
+                    circleLeft.style.cssText = `
+                        transform: rotate(${(_this.percent-50)*3.6}deg)
+                    `
+                    circleRight.style.cssText = `
+                        transform: rotate(0deg);
+                        background: rgb(242, 82, 82);
+                    `
+                }
+
+                if (_this.percent == 100) {
+                    clearInterval(time)
+                }
+            }, 10)
+        },
+        created() {
+            // circleRight
+        },
+    }
+    var DotProgress = {
+        template: `#DotProgress`,
+        data() {
+            return {
+                count: 0,
+                timeInterval: ''
+            }
+        },
+        mounted() {
+            this.timeInterval = setInterval(() => {
+                this.$refs['dot'][this.count].classList.add('dotActive');
+                this.count++;
+                if (this.count == 100) {
+                    clearInterval(this.timeInterval);
+                }
+            }, 50)
+        },
+        beforeDestroy() {
+            this.count == 0;
+            clearInterval(this.timeInterval);
+        }
+    }
+    new Vue({
+        el: '#app',
+        components: {
+            BarProgress,
+            RingProgress,
+            DotProgress
+        },
+        data: {
+            tabs: ['BAR', 'RING', 'DOT'],
+            selectedIndex: 0,
+            currentComponent: 'BarProgress'
+        },
+        methods: {
+            select(index) {
+                this.selectedIndex = index;
+                var progress = ['BarProgress', 'RingProgress', 'DotProgress']
+                this.currentComponent = progress[index];
+            }
+        },
+    })
+</script>
