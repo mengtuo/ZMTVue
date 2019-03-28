@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        .selected {
+            margin-left: 200px;
+            min-width: 200px;
+            max-width: 300px;
+            height: 40px;
+            border: 1px solid lightgray;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .selected>input {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            border: none;
+            outline: none;
+            padding: 5px;
+        }
+        .selected>ul {
+            position: fixed;
+            margin-top: 10px;
+            list-style: none;
+            min-width: 300px;
+            height: 300px;
+            background: rgb(255, 255, 255);
+            border-radius: 5px;
+            box-shadow: 0 0 10px 1px lightgray;
+            z-index: 999;
+        }
+        .selected>ul>li {
+           width: 100%;
+           height: 44px;
+           text-align: center;
+           line-height: 44px;
+        }
+        .selected>ul>li:hover{
+            background: rgb(219, 242, 250);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <mt-selecte v-model="value">
+            <mt-options v-for="item in options" 
+            :label="item.title"
+            :value="item.title"
+             ></mt-options>
+        </mt-selecte>
+        {{value}}
+    </div>
+</body>
+</html>
+<script type="text/template" id="selected">
+    <div class="selected" ref="selected">
+        <input type="text" placeholder="输入内容" @focus="showList=true"
+         @click.stop v-model="value"
+         @change="$emit('input',value)"
+         >
+        <ul ref="selectedUL" v-show="showList" @click.stop="selectLi">
+           <slot></slot>
+        </ul>
+    </div>
+</script>
+<script>
+    var mtoptions = {
+        name:'mt-options',
+        props:['label','value'],
+        template: `
+            <li :value="value">
+                {{label}}
+            </li>
+        `
+    }
+    var selected = {
+        name:'mt-selecte',
+        template: "#selected",
+        props: ['label'],
+        data(){
+            return {
+                showList:false,
+                value:''
+            }
+        },
+        methods: {
+            selectLi(ev){
+                // 使用事件代理,判断点击的是否是LI元素
+                if(ev.target.tagName==='LI'){
+                    // input的value值等于li的值
+                    console.log(ev);
+                    this.value = ev.target.attributes[0].value;
+                    this.showList = false;
+                }
+            },
+        },
+        watch: {
+            value(newValue){
+                // 当input里的数据发生变化的时候,通知组件调用者v-model
+                this.$emit('input',newValue)
+            }
+        },
+        mounted() {
+            var _this = this;
+            // 点击空白的地方,让下拉框消失
+            document.body.addEventListener("click",function(){
+                _this.showList = false;
+            })
+            
+        },
+    }
+    Vue.component(selected.name,selected);
+    Vue.component(mtoptions.name,mtoptions)
+    new Vue({
+        el:"#app",
+        data: {
+            options: [
+                {title:'js'},
+                {title:'html5'}
+            ],
+            value: '123'
+        }
+    })
+</script>
